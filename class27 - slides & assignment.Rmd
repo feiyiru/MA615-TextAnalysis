@@ -1,0 +1,110 @@
+---
+title: "Text Analysis"
+author: "MA615"
+date: "Nov 2, 2018"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Today  
+
+ * Quick review of chapters 1-4  
+ * Form groups  
+ * Pick a book and produce an analysis  
+ * Produce a document or slide presentation for your analysis  
+
+
+## Chapter 1  
+
+![](tidy-text-mining-master/images/tidyflow1a.png)  
+
+* Tidy data applied to text  
+* Word frequency  
+* Correlation as a measure of similarity  
+
+## Chapter 2  
+
+
+![](tidy-text-mining-master/images/tidyflow-ch2a.png)  
+
+
+\vspace{.1inch}  
+* Sentiment analysis  
+* Graphical depiction of the emotional flow of a novel  
+* Word clouds  
+
+## Chapters 3 & 4
+
+### Ch 3
+
+* Word frequency and rank
+* tf-idf words
+* Zipf's Law
+
+
+### Ch 4  
+
+* n-grams  
+* n-gram wrangling  
+* bi-gram frequency  
+* Network visualizations of bi-gram  
+
+
+## Class Assignment
+
+Pick a book and carry out the analysis that was done in the first four chapters of 
+[Text Mining with R](https://www.tidytextmining.com/tidytext.html).
+
+Make sure that you get a book or a collection downloaded as text.  Make sure that you can organize the tokens as shown in Chapter 1 and that you can at least generate a histogram using the work frequencies.  Go as far as you can with the analysis.  Produce notes about what you have done and how.  Include comments about what your analysis shows.
+
+```{r}
+library(gutenbergr)
+text <- gutenberg_download(32036)
+
+```
+
+
+### book sites
+
+http://freecomputerbooks.com/
+
+https://en.wikisource.org/wiki/Main_Page
+
+http://www.gutenberg.org/
+
+
+## Text analysis links   
+
+
+[CRAN Task View: Natural Language Processing](https://cran.r-project.org/web/views/NaturalLanguageProcessing.html)
+
+
+[RcmdrPlugin.temis: Graphical Integrated Text Mining Solution](https://cran.r-project.org/web/packages/RcmdrPlugin.temis/index.html)
+
+[Text mining with R github](https://github.com/dgrtwo/tidy-text-mining)
+
+
+[r-break-corpus-into-sentences](https://stackoverflow.com/questions/18712878/r-break-corpus-into-sentences)
+
+[tokenizers](https://cran.r-project.org/web/packages/tokenizers/README.html)
+
+
+[Introduction to the tokenizers Package](https://cran.r-project.org/web/packages/tokenizers/vignettes/introduction-to-tokenizers.html)
+
+
+
+[Package ‘tokenizers’](https://cran.r-project.org/web/packages/tokenizers/tokenizers.pdf)
+
+
+
+
+
+
+
+
+
+
+
