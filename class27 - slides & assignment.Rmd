@@ -2,7 +2,9 @@
 title: "Text Analysis"
 author: "MA615"
 date: "Nov 2, 2018"
-output: ioslides_presentation
+output:
+  slidy_presentation: default
+  ioslides_presentation: default
 ---
 
 ```{r setup, include=FALSE}
@@ -91,7 +93,8 @@ Remove stop words that not useful for an analysis
 ```{r}
 library(stopwords)
 tidy_book <- tidy_book %>% anti_join(stop_words)
-```
+```  
+
 Find the most common words in the book
 ```{r}
 tidy_book %>% count(word, sort = TRUE)
@@ -109,8 +112,134 @@ tidy_book %>% count(word,sort = TRUE) %>%
   coord_flip()
 ```
 
+## Chapter 2
 
 
+Assigns words with a score that runs between -5 and 5, with negative scores indicating negative sentiment and positive scores indicating positive sentiment.
+```{r}
+library(tidytext)
+
+get_sentiments("afinn")
+```
+Categorizes words in a binary fashion into positive and negative categories.
+```{r}
+get_sentiments("bing")
+```
+
+Categorizes words in a binary fashion (“yes”/“no”) into categories of positive, negative, anger, anticipation, disgust, fear, joy, sadness, surprise, and trust.
+```{r}
+get_sentiments("nrc")
+```
+
+What are the most common fear words in Chapter 6?
+```{r}
+library(janeaustenr)
+library(dplyr)
+library(stringr)
+
+
+
+nrc_fear <- get_sentiments("nrc") %>% 
+  filter(sentiment == "fear")
+
+tidy_book %>%
+  filter(chpater == "6") %>%
+  inner_join(nrc_fear) %>%
+  count(word, sort = TRUE)
+```
+Plot these sentiment scores across the plot trajectory of each chapter
+```{r}
+library(tidyr)
+jane_austen_sentiment <- tidy_book %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(chpater, index = linenumber %/% 10, sentiment) %>%
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+
+library(ggplot2)
+
+ggplot(jane_austen_sentiment, aes(index, sentiment, fill = chpater)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~chpater, ncol = 2, scales = "free_x")
+```
+```{r}
+chapter.6 <- tidy_book %>% 
+  filter(chpater == "6")
+
+chapter.6
+```
+How the sentiment changes across the narrative arc of Chapter 6.
+```{r}
+afinn <- chapter.6 %>% 
+  inner_join(get_sentiments("afinn")) %>% 
+  group_by(index = linenumber %/% 10) %>% 
+  summarise(sentiment = sum(value)) %>% 
+  mutate(method = "AFINN")
+
+bing_and_nrc <- bind_rows(chapter.6 %>% 
+                            inner_join(get_sentiments("bing")) %>%
+                            mutate(method = "Bing"),
+                          chapter.6 %>% 
+                            inner_join(get_sentiments("nrc") %>% 
+                                         filter(sentiment %in% c("positive", 
+                                                                 "negative"))) %>%
+                            mutate(method = "NRC")) %>%
+  count(method, index = linenumber %/% 10, sentiment) %>%
+  spread(sentiment, n, fill = 0) %>%
+  mutate(sentiment = positive - negative)
+
+bind_rows(afinn, 
+          bing_and_nrc) %>%
+  ggplot(aes(index, sentiment, fill = method)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~method, ncol = 1, scales = "free_y")
+```
+Both lexicons have more negative than positive words, but the ratio of negative to positive words is higher in the Bing lexicon than the NRC lexicon.   
+
+
+Find out how much each word contributed to each sentiment.
+```{r}
+bing_word_count <- tidy_book %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  ungroup()
+
+bing_word_count
+```
+```{r}
+bing_word_count %>%
+  group_by(sentiment) %>%
+  top_n(10) %>%
+  ungroup() %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(word, n, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free_y") +
+  labs(y = "Contribution to sentiment",
+       x = NULL) +
+  coord_flip()
+```
+
+Look at the most common words in book as a whole again
+```{r}
+library(wordcloud)
+
+tidy_book %>%
+  anti_join(stop_words) %>%
+  count(word) %>%
+  with(wordcloud(word, n, max.words = 100))
+```
+Do the sentiment analysis to tag positive and negative words, then find the most common positive and negative words
+```{r}
+library(reshape2)
+
+tidy_book %>%
+  inner_join(get_sentiments("bing")) %>%
+  count(word, sentiment, sort = TRUE) %>%
+  acast(word ~ sentiment, value.var = "n", fill = 0) %>%
+  comparison.cloud(colors = c("gray20", "gray80"),
+                   max.words = 5)
+```
 ### book sites
 
 http://freecomputerbooks.com/
