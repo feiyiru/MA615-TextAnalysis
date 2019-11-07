@@ -227,7 +227,7 @@ library(wordcloud)
 tidy_book %>%
   anti_join(stop_words) %>%
   count(word) %>%
-  with(wordcloud(word, n, max.words = 100))
+  with(wordcloud(word, n, max.words = 50))
 ```
 Do the sentiment analysis to tag positive and negative words, then find the most common positive and negative words
 ```{r}
@@ -240,6 +240,88 @@ tidy_book %>%
   comparison.cloud(colors = c("gray20", "gray80"),
                    max.words = 5)
 ```
+
+##Chapter 3
+What are the most commonly used words in selected book.
+```{r}
+library(dplyr)
+library(tidytext)
+
+book_words <- tidy_book %>%
+
+  count(chpater, word, sort = TRUE)
+
+total_words <- book_words %>% 
+  group_by(chpater) %>% 
+  summarize(total = sum(n))
+
+book_words <- left_join(book_words, total_words)
+
+book_words
+
+
+
+
+```
+
+This is exactly what term frequency is.
+```{r}
+library(ggplot2)
+
+ggplot(book_words, aes(n/total, fill = chpater)) +
+  geom_histogram(show.legend = FALSE, bins = 100) +
+  xlim(NA, 0.0009) + 
+  facet_wrap(~chpater, ncol = 2, scales = "free_y")
+
+```
+
+Examine Zipf's law for selected book.
+```{r}
+freq_by_rank <- book_words %>% 
+  group_by(chpater) %>% 
+  mutate(rank = row_number(), 
+         `term frequency` = n/total)
+
+freq_by_rank
+
+```
+```{r}
+freq_by_rank %>% 
+  ggplot(aes(rank, `term frequency`, color = chpater)) + 
+  geom_line(size = 1.1, alpha = 0.8, show.legend = FALSE) + 
+  scale_x_log10() +
+  scale_y_log10()
+```
+
+tf-idf
+```{r}
+book_words <- book_words %>%
+  bind_tf_idf(word, chpater, n)
+
+book_words
+```
+Look at terms with high tf-idf in selected book.
+```{r}
+book_words %>%
+  select(-total) %>%
+  arrange(desc(tf_idf))
+```
+Look at a visualization for these high tf-idf words
+```{r}
+book_words %>%
+  arrange(desc(tf_idf)) %>%
+  mutate(word = factor(word, levels = rev(unique(word)))) %>% 
+  group_by(chpater) %>% 
+  top_n(6) %>% 
+  ungroup() %>%
+  ggplot(aes(word, tf_idf, fill = chpater)) +
+  geom_col(show.legend = FALSE) +
+  labs(x = NULL, y = "tf-idf") +
+  facet_wrap(~chpater, ncol = 2, scales = "free") +
+  coord_flip()
+```
+
+
 ### book sites
 
 http://freecomputerbooks.com/
